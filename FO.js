@@ -1,8 +1,23 @@
 const fs = require('fs');
 const path = require('path');
 
+
+
+let types = {
+    media: ["mp4", "mkv", "mp3"],
+    archives: ["zip", "7z", "rar", "tar", "gz", "ar", "iso", "xz"],
+    documents: ["docx","doc","pdf","xlsx","xls","odt","ods","odp","odg","odf","txt","ps","tex"],
+    app: ["exe", "dmg", "pkg", "deb"],
+    cProg: ["c"],
+    javaProg: ["java"],
+    shellProg: ["sh"],
+};
+
+
 let inputArr = process.argv.slice(2);
 let command = inputArr[0];
+
+
 
 switch(command){
     case "help":
@@ -63,9 +78,56 @@ function organizefn(dirpath){
 
 function organizeHelper(src,dest){
     let childNames = fs.readdirSync(src);
-    console.log(childNames);
+    // console.log(childNames);
     for(let i=0 ; i<childNames.length ; i++){
         let childPath = path.join(src,childNames[i]);
-        console.log(fs.lstatSync(childPath).isFile());
+        let isFile = fs.lstatSync(childPath).isFile();
+        if(isFile == true){
+            let fileCategory = getCategory(childPath);
+            // console.log(childNames[i]+ " Belongs to " +fileCategory);
+
+            // moving files to folders on the basis of category
+            sendFile(childPath, dest, fileCategory);
+        }
     }
+}
+
+function getCategory(name){
+
+    // extracting the extensions of files
+    let ext = path.extname(name);
+    ext = ext.slice(1);
+    
+    // looping through all the types ex: docs apps archives .......
+    for( let type in types){
+        let ctypeArr = types[type];
+
+        // looping through all the available extensions in a type
+        for( let i=0; i<ctypeArr.length;i++){
+            // If extension match is found under a type then return the type
+            if(ctypeArr[i] == ext){
+                return type;
+            }
+        }
+    }
+    // If no match is found the return 'others'
+    return 'others';
+}
+
+
+function sendFile(src , dest , category){
+
+    let catPath = path.join(dest,category);
+
+    // Checking if destination folder already exists or not, if it doesn't exists then create a new folder 
+    if(fs.existsSync(catPath) == false){
+        fs.mkdirSync(catPath);
+    }
+
+    let fileName = path.basename(src);
+    let destPath = path.join(catPath,fileName);
+
+    fs.copyFileSync(src,destPath);
+    fs.unlinkSync(src);
+    console.log("organized file: "+fileName);
 }
