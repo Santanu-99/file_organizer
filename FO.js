@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 
-
+// Object to support defferent categories on the basis of extensions
 let types = {
     media: ["mp4", "mkv", "mp3"],
     archives: ["zip", "7z", "rar", "tar", "gz", "ar", "iso", "xz"],
@@ -24,16 +24,20 @@ switch(command){
         helpfn();
         break;
     case "tree":
-        console.log("Tree is implemented");
+        treefn(inputArr[1]);
         break;
     case "organize":
         organizefn(inputArr[1]);
+        break;
+    case "search":
+        console.log("Search the directory recursively for a file");
         break;
 
     default:
         console.log("Please enter a Valid command, if unknown then pass help as parameter");
 }
 
+// Help function implementation
 function helpfn(){
     console.log(`List of all the commands - 
                     1) Tree Command - node FO.js tree <dirname>
@@ -42,7 +46,7 @@ function helpfn(){
 }
 
 
-// Does all the checkings and call a function to organize accordingly
+// Organize files - implementation
 function organizefn(dirpath){
     // If no path provided as command line argument
     if(dirpath == undefined){
@@ -140,4 +144,41 @@ function sendFile(src , dest , category){
     fs.copyFileSync(src,destPath);
     fs.unlinkSync(src);
     console.log("Organized file: "+fileName + " ;-) ");
+}
+
+// tree directory structure - display implementation
+function treefn(dirPath){
+    
+    if(dirPath == undefined){
+        console.log("Please provide a directory path");
+        return;
+    }
+    
+    let doesExist = fs.existsSync(dirPath);
+    if(doesExist == true){
+        treeHelper(dirPath," ");
+    }else{
+        console.log("Please enter a valid path to the directory");
+    }
+}
+
+function treeHelper(targetPath , indent){
+    let isFile = fs.lstatSync(targetPath).isFile();
+
+    if(isFile == true){
+        let fileName = path.basename(targetPath);
+        console.log(indent+ "├──" + fileName);
+    }
+    else{
+        let dirName = path.basename(targetPath);
+        console.log(indent + "└──" +dirName);
+
+        let children = fs.readdirSync(targetPath);
+
+        for(let i =0; i<children.length;i++){
+            let childPath = path.join(targetPath,children[i]);
+
+            treeHelper(childPath,indent + "\t");
+        }
+    }
 }
