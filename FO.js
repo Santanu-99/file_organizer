@@ -21,7 +21,6 @@ let command = inputArr[0];
 
 switch(command){
     case "help":
-        // console.log("Help is implemented");
         helpfn();
         break;
     case "tree":
@@ -77,19 +76,27 @@ function organizefn(dirpath){
 }
 
 function organizeHelper(src,dest){
+    // Getting files and folder names in the given directory
     let childNames = fs.readdirSync(src);
-    // console.log(childNames);
+
+
+    // Initiating organize
+    console.log("Starting file organizing---------------------------------------------------------");
     for(let i=0 ; i<childNames.length ; i++){
         let childPath = path.join(src,childNames[i]);
         let isFile = fs.lstatSync(childPath).isFile();
+        
+        // Filtering out the file
         if(isFile == true){
+            // getting the folder(category) name in which the file is to be placed
             let fileCategory = getCategory(childPath);
-            // console.log(childNames[i]+ " Belongs to " +fileCategory);
 
-            // moving files to folders on the basis of category
+            // moving file to folder on the basis of category
             sendFile(childPath, dest, fileCategory);
         }
     }
+    // Finish message
+    console.log("File organizing completed!!! Check out the 'organized_files' Folder --------------");
 }
 
 function getCategory(name){
@@ -124,10 +131,13 @@ function sendFile(src , dest , category){
         fs.mkdirSync(catPath);
     }
 
+    // Creating destination file path
     let fileName = path.basename(src);
     let destPath = path.join(catPath,fileName);
 
+    // Copying files from current to destination directory, and then, deleting the original file
+    console.log("Organizing file: "+fileName +"........");
     fs.copyFileSync(src,destPath);
     fs.unlinkSync(src);
-    console.log("organized file: "+fileName);
+    console.log("Organized file: "+fileName + " ;-) ");
 }
